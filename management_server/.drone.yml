@@ -1,0 +1,44 @@
+kind: pipeline
+type: docker
+name: kubemanagement-server-publish
+steps:
+  - name: build
+    image: plugins/docker
+    volumes:
+      - name: hosts
+        path: /etc/hosts
+      - name: docker-ca
+        path: /etc/docker
+      - name: dockersock
+        path: /var/run/docker.sock
+    settings:
+      username: admin
+      password:
+        from_secret: harbor_password
+      repo: harbor.kubemanagement.com/kubemanagement/kubemanagement
+      registry: harbor.kubemanagement.com
+      tags:
+        - v1.1
+  - name: ssh commands
+    image: appleboy/drone-ssh
+    settings:
+      host: 192.168.65.134
+      username: root
+      password:
+        from_secret: ssh_password
+      port: 22
+      script:
+        #拉取镜像并重启 注意--需要提前在目标主机完成docker login
+        - if [ $(docker ps -a | grep kubemanagement | wc -l) -ge 1 ];then docker stop kubemanagement && docker rm kubemanagement; fi
+        - docker pull harbor.kubemanagement.com/kubemanagement/kubemanagement:v1.1
+        - docker run --name kubemanagement --restart=always -d -p8082:8082 harbor.kubemanagement.com/kubemanagement/kubemanagement:v1.1
+volumes:
+  - name: hosts
+    host:
+      path: /etc/hosts
+  - name: docker-ca
+    host:
+      path: /etc/docker
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock

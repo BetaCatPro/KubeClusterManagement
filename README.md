@@ -13,3 +13,13 @@ Kubernetes 集群管理平台
     - harbo 2.8.3
 - 前端
     - vue-element-admin
+
+
+# Interface
+
+- Pod 管理接口
+    - 命名空间列表接口
+    - Pod 创建
+    - Pod 查看（详情，列表）
+    - Pod 编辑（更新，升级）
+    - Pod 删除
