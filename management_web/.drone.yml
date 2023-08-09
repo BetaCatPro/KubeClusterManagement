@@ -1,0 +1,50 @@
+kind: pipeline
+type: docker
+name: kubemanagement-web-publish
+
+environment:
+  GOOS: linux
+  GOARCH: amd64
+
+steps:
+  - name: build
+    image: plugins/docker
+    volumes:
+      - name: hosts
+        path: /etc/hosts
+      - name: docker-ca
+        path: /etc/docker
+      - name: dockersock
+        path: /var/run/docker.sock
+    settings:
+      username: admin
+      password:
+        from_secret: harbor_password
+      repo: harbor.kubemanagement.com/kubemanagement/kubemanagement-web
+      registry: harbor.kubemanagement.com
+      tags:
+        - v1.1
+  - name: ssh commands
+    image: appleboy/drone-ssh
+    settings:
+      host: 192.168.65.134
+      username: root
+      password:
+        from_secret: ssh_password
+      port: 22
+      script:
+        #拉取镜像并重启 注意--需要提前在目标主机完成docker login
+        - if [ $(docker ps -a | grep kubemanagement-web | wc -l) -ge 1 ];then docker stop kubemanagement-web && docker rm kubemanagement-web; fi
+        - docker pull harbor.kubemanagement.com/kubemanagement/kubemanagement-web:v1.1
+        - export BACKEND_HOST=http://192.168.65.134:8082/
+        - docker run --name kubemanagement-web --restart=always -d -p8081:80 -e BACKEND_HOST=$BACKEND_HOST harbor.kubemanagement.com/kubemanagement/kubemanagement-web:v1.1
+volumes:
+  - name: hosts
+    host:
+      path: /etc/hosts
+  - name: docker-ca
+    host:
+      path: /etc/docker
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
