@@ -18,8 +18,18 @@ Kubernetes 集群管理平台
 # Interface
 
 - Pod 管理接口
-    - 命名空间列表接口
-    - Pod 创建
-    - Pod 查看（详情，列表）
-    - Pod 编辑（更新，升级）
-    - Pod 删除
+    - [x] 命名空间列表接口 (kubectl get namespaces)
+    - [x] 创建 (kubectl apply -f xxx.yml)
+    - [x] 查看详情/列表 (kubectl describe pod / kubectl get pod -n \<namespace\> -o wide)
+    - [x] 编辑更新/升级
+    - [x] 删除 
+        - (kubectl delete pod \<podname\> -n \<namespace\>)
+        - (kubectl get deployment -n \<namespace\>)
+        - (kubectl delete deployment \<deployment名\> -n \<namespace\>)
+    - [x] pod 新增容忍参数 (tolerations)
+    - [x] pod 调度模式 (nodeName, nodeSelector, nodeAffinity)
+- NodeScheduling 接口
+    - [x] node 列表/详情 (kubectl get nodes / kubectl describe node \<nodename\> )
+    - [x] node 标签管理 (kubectl label node \<nodename\> <name=value>)
+    - [x] node 污点(taint)管理
+    - [x] 查看 node 上所有 pod
