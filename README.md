@@ -33,3 +33,6 @@ Kubernetes 集群管理平台
     - [x] node 标签管理 (kubectl label node \<nodename\> <name=value>)
     - [x] node 污点(taint)管理
     - [x] 查看 node 上所有 pod
+- 应用与配置分离接口
+    - [x] ConfigMap crud 接口 (kubectl get configmap -n \<namespace\>)
+    - [x] Secret crud 接口 (kubectl get secret -n \<namespace\>)
