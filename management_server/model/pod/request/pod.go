@@ -16,9 +16,44 @@ type Base struct {
 	RestartPolicy string `json:"restartPolicy"`
 }
 
+type ConfigMapVolume struct {
+	Name     string `json:"name"`
+	Optional bool   `json:"optional"`
+}
+
+type SecretVolume struct {
+	Name     string `json:"name"`
+	Optional bool   `json:"optional"`
+}
+
+type HostPathVolume struct {
+	Type corev1.HostPathType `json:"type"`
+	// 宿主机路径
+	Path string `json:"path"`
+}
+
+type DownwardApiVolumeItem struct {
+	Path         string `json:"path"`
+	FieldRefPath string `json:"fieldRefPath"`
+}
+
+type DownwardApiVolume struct {
+	Items []DownwardApiVolumeItem `json:"items"`
+}
+
+type PVCVolume struct {
+	Name string `json:"name"`
+}
+
 type Volume struct {
 	Name string `json:"name"`
-	Type string `json:"type"`
+	// emptydir | configMap | secret | hostPath | downward | pvc
+	Type              string            `json:"type"`
+	ConfigMapVolume   ConfigMapVolume   `json:"configMapVolume"`
+	SecretVolume      SecretVolume      `json:"secretVolume"`
+	HostPathVolume    HostPathVolume    `json:"hostPathVolume"`
+	DownwardApiVolume DownwardApiVolume `json:"downwardApiVolume"`
+	PVCVolume         PVCVolume         `json:"PVCVolume"`
 }
 
 // hostNetwork: true
@@ -66,15 +101,15 @@ type VolumeMount struct {
 }
 
 type ProbeHttpGet struct {
-	//请求协议http / https
+	// 请求协议http / https
 	Scheme string `json:"scheme"`
-	//请求host 如果为空 那么就是Pod内请求
+	// 请求host 如果为空 那么就是Pod内请求
 	Host string `json:"host"`
-	//请求路径
+	// 请求路径
 	Path string `json:"path"`
-	//请求端口
+	// 请求端口
 	Port int32 `json:"port"`
-	//请求的header
+	// 请求的header
 	HttpHeaders []base.ListMapItem `json:"httpHeaders"`
 }
 type ProbeCommand struct {

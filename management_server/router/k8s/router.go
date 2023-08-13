@@ -31,4 +31,19 @@ func (*K8sRouter) InitK8SRouter(r *gin.Engine) {
 	group.GET("/secret/:namespace", apiGroup.GetSecretDetailOrList)
 	group.DELETE("/secret/:namespace/:name", apiGroup.DeleteSecret)
 
+	//*******************PV***********************//
+	group.POST("/pv", apiGroup.CreatePV)
+	group.GET("/pv/:namespace", apiGroup.GetPVList)
+	group.DELETE("/pv/:namespace/:name", apiGroup.DeletePV)
+
+	//*******************PVC***********************//
+	group.POST("/pvc", apiGroup.CreatePVC)
+	group.GET("/pvc/:namespace", apiGroup.GetPVCList)
+	group.DELETE("/pvc/:namespace/:name", apiGroup.DeletePVC)
+
+	//*******************SC***********************//
+	group.POST("/sc", apiGroup.CreateSC)
+	group.GET("/sc/:namespace", apiGroup.GetSCList)
+	group.DELETE("/sc/:namespace/:name", apiGroup.DeleteSC)
+
 }
