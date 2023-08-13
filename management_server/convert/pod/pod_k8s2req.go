@@ -81,27 +81,27 @@ func getNodeReqScheduling(podK8s corev1.Pod) pod_req.NodeScheduling {
 	return nodeScheduling
 }
 
-func (this *K8s2ReqConvert) PodK8s2Req(podK8s corev1.Pod) pod_req.Pod {
+func (k2r *K8s2ReqConvert) PodK8s2Req(podK8s corev1.Pod) pod_req.Pod {
 	return pod_req.Pod{
 		Base:           getReqBase(podK8s),
 		Tolerations:    podK8s.Spec.Tolerations,
 		NodeScheduling: getNodeReqScheduling(podK8s),
 		NetWorking:     getReqNetworking(podK8s),
-		Volumes:        this.getReqVolumes(podK8s.Spec.Volumes),
-		Containers:     this.getReqContainers(podK8s.Spec.Containers),
-		InitContainers: this.getReqContainers(podK8s.Spec.InitContainers),
+		Volumes:        k2r.getReqVolumes(podK8s.Spec.Volumes),
+		Containers:     k2r.getReqContainers(podK8s.Spec.Containers),
+		InitContainers: k2r.getReqContainers(podK8s.Spec.InitContainers),
 	}
 }
-func (this *K8s2ReqConvert) getReqContainers(containersK8s []corev1.Container) []pod_req.Container {
+func (k2r *K8s2ReqConvert) getReqContainers(containersK8s []corev1.Container) []pod_req.Container {
 	podReqContainers := make([]pod_req.Container, 0)
 	for _, item := range containersK8s {
 		// container转换
-		reqContainer := this.getReqContainer(item)
+		reqContainer := k2r.getReqContainer(item)
 		podReqContainers = append(podReqContainers, reqContainer)
 	}
 	return podReqContainers
 }
-func (this *K8s2ReqConvert) getReqContainer(container corev1.Container) pod_req.Container {
+func (k2r *K8s2ReqConvert) getReqContainer(container corev1.Container) pod_req.Container {
 	return pod_req.Container{
 		Name:            container.Name,
 		Image:           container.Image,
@@ -116,7 +116,7 @@ func (this *K8s2ReqConvert) getReqContainer(container corev1.Container) pod_req.
 		EnvsFrom:       getReqContainersEnvsFrom(container.EnvFrom),
 		Privileged:     getReqContainerPrivileged(container.SecurityContext),
 		Resources:      getReqContainerResources(container.Resources),
-		VolumeMounts:   this.getReqContainerVolumeMounts(container.VolumeMounts),
+		VolumeMounts:   k2r.getReqContainerVolumeMounts(container.VolumeMounts),
 		StartupProbe:   getReqContainerProbe(container.StartupProbe),
 		LivenessProbe:  getReqContainerProbe(container.LivenessProbe),
 		ReadinessProbe: getReqContainerProbe(container.ReadinessProbe),
@@ -169,11 +169,11 @@ func getReqContainerProbe(probeK8s *corev1.Probe) pod_req.ContainerProbe {
 	return containerProbe
 }
 
-func (this *K8s2ReqConvert) getReqContainerVolumeMounts(volumeMountsK8s []corev1.VolumeMount) []pod_req.VolumeMount {
+func (k2r *K8s2ReqConvert) getReqContainerVolumeMounts(volumeMountsK8s []corev1.VolumeMount) []pod_req.VolumeMount {
 	volumesReq := make([]pod_req.VolumeMount, 0)
 	for _, item := range volumeMountsK8s {
 		//非emptydir 过滤掉
-		_, ok := this.volumeMap[item.Name]
+		_, ok := k2r.volumeMap[item.Name]
 		if ok {
 			volumesReq = append(volumesReq, pod_req.VolumeMount{
 				MountName: item.Name,
@@ -267,20 +267,97 @@ func getReqContainerPorts(portsK8s []corev1.ContainerPort) []pod_req.ContainerPo
 	return portsReq
 }
 
-func (this *K8s2ReqConvert) getReqVolumes(volumes []corev1.Volume) []pod_req.Volume {
+func (k2r *K8s2ReqConvert) getReqVolumes(volumes []corev1.Volume) []pod_req.Volume {
 	volumesReq := make([]pod_req.Volume, 0)
+	if k2r.volumeMap == nil {
+		k2r.volumeMap = make(map[string]string)
+	}
 	for _, volume := range volumes {
 		if volume.EmptyDir == nil {
 			continue
 		}
-		if this.volumeMap == nil {
-			this.volumeMap = make(map[string]string)
+		var volumeReq *pod_req.Volume
+
+		if volume.EmptyDir != nil {
+			volumeReq = &pod_req.Volume{
+				Type: volume_emptyDir,
+				Name: volume.Name,
+			}
+
 		}
-		this.volumeMap[volume.Name] = ""
-		volumesReq = append(volumesReq, pod_req.Volume{
-			Type: volume_type_emptydir,
-			Name: volume.Name,
-		})
+		if volume.HostPath != nil {
+			volumeReq = &pod_req.Volume{
+				Type: volume_configMap,
+				Name: volume.Name,
+				HostPathVolume: pod_req.HostPathVolume{
+					Path: volume.HostPath.Path,
+					Type: *volume.HostPath.Type,
+				},
+			}
+		}
+		if volume.ConfigMap != nil {
+			var optional bool
+
+			if volume.ConfigMap.Optional != nil {
+				optional = *volume.ConfigMap.Optional
+			}
+
+			volumeReq = &pod_req.Volume{
+				Type: volume_configMap,
+				ConfigMapVolume: pod_req.ConfigMapVolume{
+					Name:     volume.ConfigMap.Name,
+					Optional: optional,
+				},
+			}
+
+		}
+		if volume.Secret != nil {
+			var optional bool
+
+			if volume.Secret.Optional != nil {
+				optional = *volume.Secret.Optional
+			}
+
+			volumeReq = &pod_req.Volume{
+				Type: volume_secret,
+				SecretVolume: pod_req.SecretVolume{
+					Name:     volume.Secret.SecretName,
+					Optional: optional,
+				},
+			}
+		}
+		if volume.DownwardAPI != nil {
+			items := make([]pod_req.DownwardApiVolumeItem, 0)
+			for _, item := range volume.DownwardAPI.Items {
+				items = append(items, pod_req.DownwardApiVolumeItem{
+					Path:         item.Path,
+					FieldRefPath: item.FieldRef.FieldPath,
+				})
+			}
+			volumeReq = &pod_req.Volume{
+				Type: volume_downward,
+				Name: volume.Name,
+				DownwardApiVolume: pod_req.DownwardApiVolume{
+					Items: items,
+				},
+			}
+		}
+		if volume.PersistentVolumeClaim != nil {
+			volumeReq = &pod_req.Volume{
+				Type: volume_pvc,
+				Name: volume.Name,
+				PVCVolume: pod_req.PVCVolume{
+					Name: volume.PersistentVolumeClaim.ClaimName,
+				},
+			}
+		}
+
+		if volumeReq == nil {
+			continue
+		}
+
+		k2r.volumeMap[volume.Name] = ""
+		volumesReq = append(volumesReq, *volumeReq)
 	}
 	return volumesReq
 }

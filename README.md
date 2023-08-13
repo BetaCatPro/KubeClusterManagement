@@ -28,6 +28,7 @@ Kubernetes 集群管理平台
         - (kubectl delete deployment \<deployment名\> -n \<namespace\>)
     - [x] pod 新增容忍参数 (tolerations)
     - [x] pod 调度模式 (nodeName, nodeSelector, nodeAffinity)
+    - [x] pod 适配多种存储卷
 - NodeScheduling 接口
     - [x] node 列表/详情 (kubectl get nodes / kubectl describe node \<nodename\> )
     - [x] node 标签管理 (kubectl label node \<nodename\> <name=value>)
@@ -36,3 +37,11 @@ Kubernetes 集群管理平台
 - 应用与配置分离接口
     - [x] ConfigMap crud 接口 (kubectl get configmap -n \<namespace\>)
     - [x] Secret crud 接口 (kubectl get secret -n \<namespace\>)
+- 存储卷管理接口
+    - [ ] configMap
+    - [ ] secret
+    - [ ] hostPath
+    - [ ] downwardApi
+    - [ ] pv
+    - [ ] pvc
+    - [ ] sc

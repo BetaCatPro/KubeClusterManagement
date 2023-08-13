@@ -19,7 +19,12 @@ const (
 )
 
 const (
-	volume_emptyDir = "emptyDir"
+	volume_emptyDir  = "emptyDir"
+	volume_configMap = "configMap"
+	volume_secret    = "secret"
+	volume_hostPath  = "hostPath"
+	volume_downward  = "downward"
+	volume_pvc       = "pvc"
 )
 
 const (
@@ -124,9 +129,62 @@ func (pc *Req2K8sConvert) getK8sVolumes(podReqVolumes []pod_req.Volume) []corev1
 		if volume.Type != volume_emptyDir {
 			continue
 		}
-		source := corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{},
+
+		source := corev1.VolumeSource{}
+
+		switch volume.Type {
+		case volume_emptyDir:
+			source = corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			}
+		case volume_hostPath:
+			source = corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Type: &volume.HostPathVolume.Type,
+					Path: volume.HostPathVolume.Path,
+				},
+			}
+		case volume_configMap:
+			source = corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: volume.ConfigMapVolume.Name,
+					},
+					Optional: &volume.ConfigMapVolume.Optional,
+				},
+			}
+		case volume_secret:
+			source = corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: volume.SecretVolume.Name,
+					Optional:   &volume.SecretVolume.Optional,
+				},
+			}
+		case volume_downward:
+			items := make([]corev1.DownwardAPIVolumeFile, 0)
+			for _, value := range volume.DownwardApiVolume.Items {
+				items = append(items, corev1.DownwardAPIVolumeFile{
+					Path: value.Path,
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: value.FieldRefPath,
+					},
+				})
+			}
+			source = corev1.VolumeSource{
+				DownwardAPI: &corev1.DownwardAPIVolumeSource{
+					Items: items,
+				},
+			}
+		case volume_pvc:
+			source = corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: volume.PVCVolume.Name,
+				},
+			}
+		default:
+			continue
 		}
+
 		podK8sVolumes = append(podK8sVolumes, corev1.Volume{
 			VolumeSource: source,
 			Name:         volume.Name,

@@ -11,6 +11,9 @@ type ApiGroup struct {
 	NodeApi
 	ConfigMapApi
 	SecretApi
+	PVApi
+	PVCApi
+	SCApi
 }
 
 var podValidate = validate.ValidateGroupApp.PodValidate
