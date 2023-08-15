@@ -45,3 +45,29 @@ Kubernetes 集群管理平台
     - [ ] pv
     - [ ] pvc
     - [ ] sc
+- 服务发现接口
+    - [ ] Service crud
+    - [ ] Ingress crud
+    - [ ] IngressRoute crud
+    - [ ] Middleware查询
+- 工作负载接口
+    - [ ] statefulSet crud
+    - [ ] deployment crud
+    - [ ] daemonSet crud
+    - [ ] job crud
+    - [ ] cronJob crud
+- 认证授权接口
+    - [ ] serviceCount 创建、删除、更新
+    - [ ] role/clusterRole crud
+    - [ ] roleBinding /clusterRoleBinding crud
+- 整合 Harbor
+    - [ ] 集成 HarborAPI
+    - [ ]  projects 列表查询
+    - [ ]  repositories 列表查询
+    - [ ]  artifacts 列表查询
+    - [ ]  镜像匹配接口
+- 仪表盘
+    - [ ] 基础信息查看
+    - [ ] 资源统计信息
+    - [ ] 集群 pod、cpu、内存耗用情况
+    - [ ] 集群 cpu、内存变化趋势
