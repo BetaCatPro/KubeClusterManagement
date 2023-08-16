@@ -1,0 +1,29 @@
+# 一次性任务
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: hello
+  namespace: test
+spec:
+  schedule: "* * * * *"
+  # 并发策略 Allow Forbid Replace
+  concurrencyPolicy: Allow
+  # 记录成功的 job 数量
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1 
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: never
+          backoffLimit: 2
+          template:
+            spec:
+              containers:
+                - name: busybox
+                  image: busybox
+                  imagePullPolicy: IfNotPresent
+                  command:
+                  - /bin/sh
+                  - -c
+                  - echo "Hello"

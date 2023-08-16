@@ -70,4 +70,6 @@ Kubernetes 集群管理平台
     - [ ] 基础信息查看
     - [ ] 资源统计信息
     - [ ] 集群 pod、cpu、内存耗用情况
+        - metrics-server
     - [ ] 集群 cpu、内存变化趋势
+        - prometheus

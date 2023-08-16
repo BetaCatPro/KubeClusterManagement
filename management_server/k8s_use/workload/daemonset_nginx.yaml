@@ -1,0 +1,27 @@
+# 每个 node 上部署 一个 pod
+# node 上部署的 pod 不会被驱逐
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: nginx-daemonSet
+  namespace: test
+  labels: 
+    app: nginx-daemonSet
+spec:
+  # replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-daemonSet-tp
+  template:
+    metadata:
+      labels:
+        app: nginx-daemonSet-tp 
+  spec:
+    containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+    # tolerations:
+    #   - key: "node.kubernetes.io/unreachable"
+    #     operator: "Exits"
+    #     tolerationSecond: 30

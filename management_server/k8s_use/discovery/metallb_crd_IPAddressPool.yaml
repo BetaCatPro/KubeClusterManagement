@@ -1,0 +1,10 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+
+metadata:
+  name: kubemanagement-ippool
+  namespace: metallb-system
+
+spec:
+  addresses:
+    - 192.168.65.130/32

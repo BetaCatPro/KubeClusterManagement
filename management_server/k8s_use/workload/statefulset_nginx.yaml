@@ -1,0 +1,62 @@
+# 启动、停止有序性
+# 启动：pod01 -> pod02；停止：pod02->pod01
+# 有状态 
+# 稳定的服务发现: curl pod名称.svc名称.命名空间.
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-statefulset-svc
+  namespace: test
+spec: 
+  type: ClusterIP
+  clusterIP: None
+  selector: 
+    app: nginx-statefulset-tp
+  ports: 
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-statefulset
+  namespace: test
+  labels: 
+    app: nginx-statefulset
+spec:
+  replicas: 2
+  serviceName: nginx-statefulset-svc
+  selector:
+    matchLabels:
+      app: nginx-statefulset-tp
+  template:
+    metadata:
+      labels:
+        app: nginx-statefulset-tp 
+  spec:
+    containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+    tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exits"
+        tolerationSecond: 30
+  volumeClaimTemplates:
+    - metadata:
+      name: www
+    spec:
+      resources:
+        requests:
+          storage: 500Mi
+        accessMode:
+          - ReadWriteOnce
+        storageClassName: nfs-storage
+
